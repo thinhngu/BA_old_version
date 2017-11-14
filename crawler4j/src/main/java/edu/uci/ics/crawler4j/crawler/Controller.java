@@ -17,8 +17,7 @@ public class Controller {
                     config.setMaxPagesToFetch(50);
                     config.setPolitenessDelay(1000);
                     config.setMaxDepthOfCrawling(10);
-                    /*config.setProxyHost("cache.mrt.ac.lk");
-                    config.setProxyPort(3128)*/;
+                   
 
                     PageFetcher pageFetcher = new PageFetcher(config);
                     RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
