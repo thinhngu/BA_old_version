@@ -1,5 +1,10 @@
 package crawler;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -53,7 +58,7 @@ public class Crawler extends WebCrawler {
     @Override
     public void visit(Page page) {
 
-        String url = page.getWebURL().getURL();
+        String url ="values " + "(" + "'" + page.getWebURL().getURL() + "'" + ")" ;
         System.out.println("Visited: " + url);
 
         if (page.getParseData() instanceof HtmlParseData) {
@@ -66,6 +71,56 @@ public class Crawler extends WebCrawler {
             System.out.println("Text length: " + text.length());
             System.out.println("Html length: " + html.length());
             System.out.println("Number of outgoing links: " + links.size());
+        }
+        Connection myConn = null;
+        Statement myStmt = null;
+        ResultSet myRs = null;
+        
+        try {
+            // 1. Get a connection to database
+            myConn = DriverManager.getConnection("jdbc:mysql://aifb-ls3-vm1.aifb.kit.edu:3306/crawler", "thinh" , "thinh");
+            
+            // 2. Create a statement
+            myStmt = myConn.createStatement();
+            
+            // 3. Execute SQL query
+            String sql ="insert into url" + " (links)" +
+                       url;
+            myStmt.executeUpdate(sql);
+            //myRs = myStmt.executeQuery("select * from employees");//
+            
+        
+        }
+        catch (Exception exc) {
+            exc.printStackTrace();
+        }
+        finally {
+            if (myRs != null) {
+                try {
+                    myRs.close();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            
+            if (myStmt != null) {
+                try {
+                    myStmt.close();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            
+            if (myConn != null) {
+                try {
+                    myConn.close();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

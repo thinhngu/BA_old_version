@@ -26,7 +26,14 @@ public class Controller {
                     RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
                     CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-                    controller.addSeed("https://www.programmableweb.com/");
+                    controller.addSeed("https://www.programmableweb.com/category/all/apis");
+                    controller.addSeed("https://rapidapi.com/");
+                    controller.addSeed("http://www.apiforthat.com/apis");
+                    controller.addSeed("https://sdks.io/");
+                    controller.addSeed("https://www.producthunt.com/#!/s/posts/api");
+                    controller.addSeed("https://apilist.fun/");
+                    
+                    
                     controller.start(Crawler.class, numberOfCrawlers);
 
             
