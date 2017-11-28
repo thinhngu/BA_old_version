@@ -24,7 +24,7 @@ public class Crawler extends WebCrawler {
 
     public static AtomicInteger linkCounter = new AtomicInteger(); // or use
                                                                    // links.size()
-    static List links = new CopyOnWriteArrayList();
+    static List<WebURL> links = new CopyOnWriteArrayList<WebURL>();
 
     @Override
     public void handlePageStatusCode(final WebURL webUrl, int statusCode,
