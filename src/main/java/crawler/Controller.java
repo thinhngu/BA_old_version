@@ -11,15 +11,16 @@ public class Controller {
         
 
             
-                    String rootFolder = "data/crowler";
-                    int numberOfCrawlers = 1;
+                    String rootFolder = "data/crawler";
+                    int numberOfCrawlers = 16;
 
                     CrawlConfig config = new CrawlConfig();
                     config.setCrawlStorageFolder(rootFolder);
-                    config.setMaxPagesToFetch(50);
+                    config.setMaxPagesToFetch(1000000);
                     config.setPolitenessDelay(1000);
-                    config.setMaxDepthOfCrawling(10);
-                   
+                    config.setMaxDepthOfCrawling(14000);
+                    config.setIncludeBinaryContentInCrawling(true);
+                    config.setProcessBinaryContentInCrawling(true);
 
                     PageFetcher pageFetcher = new PageFetcher(config);
                     RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
