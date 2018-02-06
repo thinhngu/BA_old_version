@@ -70,7 +70,7 @@ public class Crawler extends WebCrawler {
         
         String url ="values " + "(" + "'" + page.getWebURL().getURL() + "'" + ")";
         String UrlforJson = page.getWebURL().getURL();
-        Pattern pattern = Pattern.compile(".json");
+        Pattern pattern = Pattern.compile("\\.json");  // xml rdf ttl yaml jsonld owl nt qt 
         Matcher matcher = pattern.matcher(UrlforJson);
         if(matcher.find()) {
             
