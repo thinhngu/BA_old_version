@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -17,6 +18,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
+import com.mongodb.util.JSON;
 
 public class MongoQueries {
 
@@ -31,11 +33,11 @@ public class MongoQueries {
 		//Mongo mongo = new Mongo("aifb-ls3-vm1.aifb.kit.edu", 27017);
 
 		@SuppressWarnings("deprecation")
-		DB db = mongoClient.getDB("mongodb");
+		DB db = mongoClient.getDB("crawler");
 //		DB db = mongo.getDB("mongodb");
 
 		// get a single collection
-		this.crawlercollection = db.getCollection("ner");
+		this.crawlercollection = db.getCollection("apidescriptions");
 
 	}
 
@@ -46,16 +48,18 @@ public class MongoQueries {
 	}
 
 
-	public void execute(String query) {
-		
-		System.out.println("\n1. Get 'name' field only");
+	
+	public void execute(DBObject key, DBObject value) {
+
+
 		BasicDBObject allQuery = new BasicDBObject();
 		BasicDBObject fields = new BasicDBObject();
 		fields.put("name", 1);
 
-		DBCursor cursor2 = this.crawlercollection.find(allQuery, fields);
-		while (cursor2.hasNext()) {
-			System.out.println(cursor2.next());
+		//DBCursor cursor = this.crawlercollection.find(allQuery, fields);
+		DBCursor cursor = this.crawlercollection.find(key, value);
+		while (cursor.hasNext()) {
+			System.out.println(cursor.next());
 		}
 	}
 
@@ -64,8 +68,7 @@ public class MongoQueries {
 
 	public void insertJson(String url, JSONObject json) {
 
-		BasicDBObject data = new BasicDBObject();
-		data.append(url, json);
+		DBObject data = (DBObject) JSON.parse(json.toString());
 		
 		this.crawlercollection.insert(data);
 	}
