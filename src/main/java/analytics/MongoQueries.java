@@ -1,14 +1,18 @@
 package analytics;
 
 
+import java.io.IOException;
 import java.rmi.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.bson.json.JsonReader;
 import org.json.JSONObject;
+import org.json.XML;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -16,6 +20,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
@@ -27,8 +32,12 @@ public class MongoQueries {
 
 
 	public MongoQueries() {
+	    MongoClientOptions.Builder options_builder = new MongoClientOptions.Builder();
+	    options_builder.maxConnectionIdleTime(30000);
+	    MongoClientOptions options = options_builder.build();
+	    mongoClient = new MongoClient ("aifb-ls3-vm1.aifb.kit.edu:27017", options);
 
-		mongoClient = new MongoClient(new MongoClientURI("mongodb://aifb-ls3-vm1.aifb.kit.edu:27017"));
+		//mongoClient = new MongoClient(new MongoClientURI("mongodb://aifb-ls3-vm1.aifb.kit.edu:27017"));
 		//@SuppressWarnings("deprecation")
 		//Mongo mongo = new Mongo("aifb-ls3-vm1.aifb.kit.edu", 27017);
 
@@ -54,7 +63,7 @@ public class MongoQueries {
 
 		BasicDBObject allQuery = new BasicDBObject();
 		BasicDBObject fields = new BasicDBObject();
-		fields.put("name", 1);
+		fields.put("name", 6);
 
 		//DBCursor cursor = this.crawlercollection.find(allQuery, fields);
 		DBCursor cursor = this.crawlercollection.find(key, value);
@@ -68,10 +77,58 @@ public class MongoQueries {
 
 	public void insertJson(String url, JSONObject json) {
 
-		DBObject data = (DBObject) JSON.parse(json.toString());
+		DBObject data = BasicDBObject.parse(json.toString());
+		data.put("_id", url);
 		
 		this.crawlercollection.insert(data);
 	}
+	
+
+
+	public void insertXml(String url, String xml) {
+		
+		JSONObject json = XML.toJSONObject(xml);		
+		DBObject data = BasicDBObject.parse(json.toString());
+		data.put("_id", url);
+		
+		this.crawlercollection.insert(data);
+	}
+
+
+	public void insertYaml(String url, String yaml) {
+			
+		DBObject data = BasicDBObject.parse(convertYamlToJson(yaml));
+		data.put("_id", url);
+		
+		this.crawlercollection.insert(data);
+	}
+	
+	
+	/**
+	 * @author https://stackoverflow.com/users/446554/cory-klein
+	 * 
+	 * @param yaml
+	 * @return
+	 */
+	private String convertYamlToJson(String yaml) {
+		
+		String json = null;
+
+	    ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+	    Object obj;
+		try {
+			obj = yamlReader.readValue(yaml, Object.class);
+		    ObjectMapper jsonWriter = new ObjectMapper();
+		    json = jsonWriter.writeValueAsString(obj);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	    return json;
+	}
+
+
 
 
 

@@ -1,11 +1,16 @@
 package analytics;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.BasicDBObject;
 
 
 public class Analytics {
+	
+
+	private final Logger logger = LoggerFactory.getLogger(Analytics.class);
 
 	public static void main(String[] args) {
 		
