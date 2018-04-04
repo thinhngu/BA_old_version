@@ -68,12 +68,16 @@ public class Controller {
 		controller.addSeed("https://www.producthunt.com/#!/s/posts/api");
 		controller.addSeed("https://apilist.fun/");
 
+		try {
 		bing_apikey = args[0];
 		for (String url : (new Controller()).getBingUrls("web service api",50,0) ) { 
 			controller.addSeed(url);
 		}
 		for (String url : (new Controller()).getBingUrls("web service api",50,50) ) { 
 			controller.addSeed(url);
+		}
+		} catch (Exception e) {
+			logger.error("Error during Bing API request: ", e);
 		}
 
 		controller.start(Crawler.class, numberOfCrawlers);
