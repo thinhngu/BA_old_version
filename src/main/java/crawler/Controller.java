@@ -41,15 +41,14 @@ public class Controller {
 
 	public static void main(String[] args) throws Exception {
 
-		String rootFolder = "data/crawler";
+		String rootFolder = "data/crawltest";
 		int numberOfCrawlers = 16;
 
 		CrawlConfig config = new CrawlConfig();
 
 		config.setCrawlStorageFolder(rootFolder);
 		config.setMaxPagesToFetch(1000000);
-		config.setPolitenessDelay(200);
-		config.setMaxDepthOfCrawling(10);
+		config.setPolitenessDelay(20);
 		config.setIncludeHttpsPages(true);
 		config.setIncludeBinaryContentInCrawling(true);
 		config.setProcessBinaryContentInCrawling(true);

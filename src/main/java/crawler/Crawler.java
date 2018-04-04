@@ -33,126 +33,184 @@ public class Crawler extends WebCrawler {
 			+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
 	
 	
-	String Urls = "";
+	 /**
+     * This method receives two parameters. The first parameter is the page in
+     * which we have discovered this new url and the second parameter is the new
+     * url. You should implement this function to specify whether the given url
+     * should be crawled or not (based on your crawling logic). In this example,
+     * we are instructing the crawler to ignore urls that have css, js, git, ...
+     * extensions and to only accept urls that start with
+     * "http://www.ics.uci.edu/". In this case, we didn't need the referringPage
+     * parameter to make the decision.
+     */
+    @Override
+    public boolean shouldVisit(Page referringPage, WebURL url) {
 
-	public static AtomicInteger linkCounter = new AtomicInteger(); // or use links.size()
+        String href = url.getURL().toLowerCase();
+        return !filters.matcher(href).matches()
+                && !href.contains("twitter.com")
+                && !href.contains("wikipedia.org")
+                && !href.contains("facebook.com")
+                && !href.contains("twitter.com")
+                && !href.contains("instagram.com");
+
+    }
+
+    /**
+     * This function is called when a page is fetched and ready to be processed
+     * by your program.
+     */
+    @Override
+    public void visit(Page page) {
+        Connection myConn = null;
+        Statement myStmt = null;
+        ResultSet myRs = null;
+
+        String url = "values " + "(" + "'" + page.getWebURL().getURL() + "'"
+                + ")";
+
+        String UrlforJson = page.getWebURL().getURL();
+        Pattern jsonp = Pattern.compile("\\.json");
+        Matcher JSONmatcher = jsonp.matcher(UrlforJson);
+
+        Pattern xmlp = Pattern.compile("\\.xml");
+        Matcher XMLmatcher = xmlp.matcher(UrlforJson);
+
+        Pattern rdfp = Pattern.compile("\\.rdf");
+        Matcher RDFmatcher = rdfp.matcher(UrlforJson);
+
+        Pattern ttlp = Pattern.compile("\\.ttl");
+        Matcher TTLmatcher = ttlp.matcher(UrlforJson);
+
+        Pattern yamlp = Pattern.compile("\\.yaml");
+        Matcher YAMLmatcher = yamlp.matcher(UrlforJson);
+
+        Pattern jsonldp = Pattern.compile("\\.jsonld");
+        Matcher JSONLDmatcher = jsonldp.matcher(UrlforJson);
+
+        Pattern owlp = Pattern.compile("\\.owl");
+        Matcher OWLmatcher = owlp.matcher(UrlforJson);
+
+        Pattern ntp = Pattern.compile("\\.nt");
+        Matcher NTmatcher = ntp.matcher(UrlforJson);
+
+        Pattern qtp = Pattern.compile("\\.qt");
+        Matcher QTmatcher = qtp.matcher(UrlforJson);
+
+        Pattern mdp = Pattern.compile("\\.md");
+        Matcher MDmatcher = mdp.matcher(UrlforJson);
+
+        Pattern markdownp = Pattern.compile("\\.markdown");
+        Matcher Markdownmatcher = markdownp.matcher(UrlforJson);
+        if (JSONmatcher.find()) {
+            MongoQueries mongowriter = new MongoQueries();
+            mongowriter.insertJson(url, root);
+            mongowriter.close();
+        }
+
+        if (JSONmatcher.find() || XMLmatcher.find() || RDFmatcher.find()
+                || YAMLmatcher.find() || JSONLDmatcher.find()
+                || OWLmatcher.find() || NTmatcher.find() || QTmatcher.find()
+                || MDmatcher.find() || Markdownmatcher.find()) {
+
+       
+
+            try {
+                // 1. Get a connection to database
+                myConn = DriverManager.getConnection(
+                        "jdbc:mysql://aifb-ls3-vm1.aifb.kit.edu:3306/crawler",
+                        "thinh", "thinh");
+
+                // 2. Create a statement
+                myStmt = myConn.createStatement();
+
+                // 3. Execute SQL query
+                String sql = "insert into crawled_files" + " (links)" + url;
+                myStmt.executeUpdate(sql);
+                // myRs = myStmt.executeQuery("select * from employees");//
+
+            } catch (Exception exc) {
+                exc.printStackTrace();
+            } finally {
+                if (myRs != null) {
+                    try {
+                        myRs.close();
+                    } catch (SQLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+
+                if (myStmt != null) {
+                    try {
+                        myStmt.close();
+                    } catch (SQLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+
+                if (myConn != null) {
+                    try {
+                        myConn.close();
+                    } catch (SQLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        }
+     
+        try {
+            // 1. Get a connection to database
+            myConn = DriverManager.getConnection(
+                    "jdbc:mysql://aifb-ls3-vm1.aifb.kit.edu:3306/crawler",
+                    "thinh", "thinh");
+
+            // 2. Create a statement
+            myStmt = myConn.createStatement();
+
+            // 3. Execute SQL query
+            String sql = "insert into crawled_url" + " (links)" + url;
+            myStmt.executeUpdate(sql);
+            // myRs = myStmt.executeQuery("select * from employees");//
+
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        } finally {
+            if (myRs != null) {
+                try {
+                    myRs.close();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+
+            if (myStmt != null) {
+                try {
+                    myStmt.close();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+
+            if (myConn != null) {
+                try {
+                    myConn.close();
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+
 	
 	
-	static List<WebURL> links = new CopyOnWriteArrayList<WebURL>();
-
-	
-	
-	@Override
-	public void handlePageStatusCode(final WebURL webUrl, int statusCode, String statusDescription) {
-		linkCounter.incrementAndGet();
-		links.add(webUrl);
-	}
-
-	/**
-	 * This method receives two parameters. The first parameter is the page in
-	 * which we have discovered this new url and the second parameter is the new
-	 * url. You should implement this function to specify whether the given url
-	 * should be crawled or not (based on your crawling logic). In this example,
-	 * we are instructing the crawler to ignore urls that have css, js, git, ...
-	 * extensions and to only accept urls that start with
-	 * "http://www.ics.uci.edu/". In this case, we didn't need the referringPage
-	 * parameter to make the decision.
-	 */
-	@Override
-	public boolean shouldVisit(Page referringPage, WebURL url) {
-
-		String href = url.getURL().toLowerCase();
-		return !filters.matcher(href).matches();
-
-	}
-
-	/**
-	 * This function is called when a page is fetched and ready to be processed
-	 * by your program.
-	 */
-	@Override
-	public void visit(Page page) {
-		ResultSet myRs = null;
-
-		String url ="values " + "(" + "'" + page.getWebURL().getURL() + "'" + ")";
-		String UrlforJson = page.getWebURL().getURL();
-		Pattern pattern = Pattern.compile("\\.json");  // xml rdf ttl yaml jsonld owl nt qt 
-		Matcher matcher = pattern.matcher(UrlforJson);
-		if(matcher.find()) {
-
-			try {
-				URI uri = new URI(UrlforJson);
-				JSONTokener tokener = new JSONTokener(uri.toURL().openStream());
-				JSONObject root = new JSONObject(tokener);
-
-
-				if(root.has("swagger")){
-
-					executeSql("insert into SWAGGERFILE (LinkToSwagger)" + url);
-					executeSql("insert into URL" + " (link)" + url);
-
-
-					// insert JSON into MongoDB
-					MongoQueries mongowriter = new MongoQueries();
-					mongowriter.insertJson(url, root);
-					mongowriter.close();
-
-				}
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-	}
-
-	
-	/**
-	 * 
-	 * @param sql
-	 */
-	private void executeSql(String sql) {
-
-		Connection myConn = null;
-		Statement myStmt = null;
-		ResultSet myRs = null;
-
-		try {
-			// 1. Get a connection to database
-			myConn = DriverManager.getConnection("jdbc:mysql://aifb-ls3-vm1.aifb.kit.edu:3306/crawler", "thinh" , "thinh");
-
-			// 2. Create a statement
-			myStmt = myConn.createStatement();
-
-			// 3. Execute SQL query
-			myStmt.executeUpdate(sql);
-			//myRs = myStmt.executeQuery("select * from employees");//
-
-
-		} catch (Exception exc) {
-			exc.printStackTrace();
-		} finally {
-			try {
-				if (myRs != null) myRs.close();
-				if (myStmt != null) myStmt.close();
-				if (myConn != null) myConn.close();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-
-
-
-	@Override
-	public void onBeforeExit() {
-		/* for (int i = 0; i < links.size(); i++) {
-            System.out.println(links.get(i));
-        }*/
-	}
 
 }
