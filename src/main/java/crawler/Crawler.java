@@ -26,18 +26,24 @@ import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 
 public class Crawler extends WebCrawler {
-	Pattern filters = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g"
-			+ "|png|tiff?|mid|mp2|mp3|mp4" + "|wav|avi|mov|mpeg|ram|m4v|pdf"
+	// patterns for media files, why also css?
+	Pattern filters = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g" 
+			+ "|png|tiff?|mid|mp2|mp3|mp4" 
+			+ "|wav|avi|mov|mpeg|ram|m4v|pdf"
 			+ "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
+	
+	
 	String Urls = "";
 
-	public static AtomicInteger linkCounter = new AtomicInteger(); // or use
-	// links.size()
+	public static AtomicInteger linkCounter = new AtomicInteger(); // or use links.size()
+	
+	
 	static List<WebURL> links = new CopyOnWriteArrayList<WebURL>();
 
+	
+	
 	@Override
-	public void handlePageStatusCode(final WebURL webUrl, int statusCode,
-			String statusDescription) {
+	public void handlePageStatusCode(final WebURL webUrl, int statusCode, String statusDescription) {
 		linkCounter.incrementAndGet();
 		links.add(webUrl);
 	}
@@ -103,6 +109,7 @@ public class Crawler extends WebCrawler {
 
 	}
 
+	
 	/**
 	 * 
 	 * @param sql

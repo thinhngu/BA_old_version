@@ -5,11 +5,15 @@ import java.io.IOException;
 import java.rmi.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import org.bson.Document;
 import org.bson.json.JsonReader;
 import org.json.JSONObject;
 import org.json.XML;
+import org.yaml.snakeyaml.Yaml;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -23,26 +27,31 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.util.JSON;
 
 public class MongoQueries {
 
 	private MongoClient mongoClient;
-	private DBCollection crawlercollection;
+	private MongoCollection<Document> crawlercollection;
 
 
 	public MongoQueries() {
 	    MongoClientOptions.Builder options_builder = new MongoClientOptions.Builder();
-	    options_builder.maxConnectionIdleTime(30000);
+	    options_builder.maxConnectionIdleTime(0);
 	    MongoClientOptions options = options_builder.build();
+	    System.out.println(options.getConnectionsPerHost());
 	    mongoClient = new MongoClient ("aifb-ls3-vm1.aifb.kit.edu:27017", options);
 
 		//mongoClient = new MongoClient(new MongoClientURI("mongodb://aifb-ls3-vm1.aifb.kit.edu:27017"));
 		//@SuppressWarnings("deprecation")
 		//Mongo mongo = new Mongo("aifb-ls3-vm1.aifb.kit.edu", 27017);
 
-		@SuppressWarnings("deprecation")
-		DB db = mongoClient.getDB("crawler");
+		MongoDatabase db = mongoClient.getDatabase("crawler");
 //		DB db = mongo.getDB("mongodb");
 
 		// get a single collection
@@ -52,10 +61,17 @@ public class MongoQueries {
 
 	
 	public void close() {
-		this.crawlercollection.drop();
+		//this.crawlercollection.drop();
 		this.mongoClient.close();
+		this.mongoClient = null;
+	}
+	
+	
+	public MongoCollection getCollection() {
+		return this.crawlercollection;
 	}
 
+	
 
 	
 	public void execute(DBObject key, DBObject value) {
@@ -63,74 +79,88 @@ public class MongoQueries {
 
 		BasicDBObject allQuery = new BasicDBObject();
 		BasicDBObject fields = new BasicDBObject();
-		fields.put("name", 6);
 
-		//DBCursor cursor = this.crawlercollection.find(allQuery, fields);
-		DBCursor cursor = this.crawlercollection.find(key, value);
-		while (cursor.hasNext()) {
-			System.out.println(cursor.next());
+		FindIterable<Document> cursor = this.crawlercollection.find();
+		MongoCursor<Document> iter = cursor.iterator();
+		while (iter.hasNext()) {
+			System.out.println(iter.next());
 		}
 	}
 
 
 
-
 	public void insertJson(String url, JSONObject json) {
-
-		DBObject data = BasicDBObject.parse(json.toString());
-		data.put("_id", url);
 		
-		this.crawlercollection.insert(data);
+		this.crawlercollection.insertOne(jsonToDoc(url, json));
+
 	}
 	
 
 
 	public void insertXml(String url, String xml) {
 		
-		JSONObject json = XML.toJSONObject(xml);		
-		DBObject data = BasicDBObject.parse(json.toString());
-		data.put("_id", url);
-		
-		this.crawlercollection.insert(data);
+		this.crawlercollection.insertOne(xmlToDoc(url, xml));
+
 	}
 
 
 	public void insertYaml(String url, String yaml) {
-			
-		DBObject data = BasicDBObject.parse(convertYamlToJson(yaml));
-		data.put("_id", url);
 		
-		this.crawlercollection.insert(data);
+		this.crawlercollection.insertOne(yamlToDoc(url, yaml));
+
+	}
+	
+	
+	
+	public Document jsonToDoc(String id, JSONObject json) {
+		
+		return Document.parse(json.toString().replaceAll("\\.", "_")).append("_id", id);	
+	}
+
+	
+	public Document xmlToDoc(String id, String xml) {
+		JSONObject json = XML.toJSONObject(xml);
+		return jsonToDoc(id, json);	
+	}
+
+	
+	public Document yamlToDoc(String id, String yaml) {
+		JSONObject json = convertYamlToJson(yaml);
+		return jsonToDoc(id, json);	
 	}
 	
 	
 	/**
-	 * @author https://stackoverflow.com/users/446554/cory-klein
+	 * @author https://stackoverflow.com/questions/23744216/how-do-i-convert-from-yaml-to-json-in-java
 	 * 
 	 * @param yaml
 	 * @return
 	 */
-	private String convertYamlToJson(String yaml) {
+	private JSONObject convertYamlToJson(String yaml) {
 		
-		String json = null;
-
-	    ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
-	    Object obj;
-		try {
-			obj = yamlReader.readValue(yaml, Object.class);
-		    ObjectMapper jsonWriter = new ObjectMapper();
-		    json = jsonWriter.writeValueAsString(obj);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-	    return json;
+		Yaml y = new Yaml();
+		@SuppressWarnings("unchecked")
+		Map<String,Object> map= (Map<String, Object>) y.load(yaml);
+		
+		return new JSONObject(map);
+		
+//		JSONObject json = null;
+//
+//	    ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+//	    Object obj;
+//		try {
+//			obj = yamlReader.readValue(yaml, Object.class);
+//		    ObjectMapper jsonWriter = new ObjectMapper();
+//		    json = jsonWriter.writer().
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//
+//	    return json;
 	}
 
-
-
-
+	
 
 	/**
 	 * Java MongoDB : Query document
