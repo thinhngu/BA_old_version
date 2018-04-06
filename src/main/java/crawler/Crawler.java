@@ -70,7 +70,7 @@ public class Crawler extends WebCrawler {
                 + ")";
 
         String UrlforJson = page.getWebURL().getURL();
-        Pattern jsonp = Pattern.compile("\\.json");
+        Pattern jsonp = Pattern.compile("\\.json"); //TODO maybe use regex like "\\.json$" (end of line)?
         Matcher JSONmatcher = jsonp.matcher(UrlforJson);
 
         Pattern xmlp = Pattern.compile("\\.xml");
@@ -104,7 +104,7 @@ public class Crawler extends WebCrawler {
         Matcher Markdownmatcher = markdownp.matcher(UrlforJson);
         if (JSONmatcher.find()) {
             MongoQueries mongowriter = new MongoQueries();
-            mongowriter.insertJson(url, root);
+            mongowriter.insertJson(url, new JSONObject(page.getContentCharset())); //TODO this line has not been checked yet!
             mongowriter.close();
         }
 

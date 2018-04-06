@@ -1,4 +1,4 @@
-﻿bin/**
+﻿﻿bin/**
 /target/
 .settings
 .settings/**
@@ -7,3 +7,4 @@
 /WebServiceCrawler_2018-03-01.log
 data/*
 *.log
+/bin/
